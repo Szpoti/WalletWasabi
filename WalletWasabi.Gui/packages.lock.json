@@ -63,24 +63,13 @@
           "Dock.Model": "0.9.9"
         }
       },
-      "Emgu.CV": {
+      "Emgu.CV.runtime.ubuntu.20.04-x64": {
         "type": "Direct",
         "requested": "[4.5.1.4349, )",
         "resolved": "4.5.1.4349",
-        "contentHash": "HkjpYLxh9IVK311p/MXd54hRd2mF62LEO6vswYgiFdHdSQvNmnnZR3umQYP3lcuInqK2qp75w69m5Rz9lgA2bg==",
+        "contentHash": "PlIbNHrIuwbcW+DEGZnwxbZmXRIb0IGzoGgTyF8LCaacouVmfYQmD6etffbIO5h1biE+F2p4sEGTABUZKnlybQ==",
         "dependencies": {
-          "System.Drawing.Primitives": "4.3.0",
-          "System.Runtime": "4.3.1",
-          "System.Runtime.InteropServices.RuntimeInformation": "4.3.0"
-        }
-      },
-      "Emgu.CV.runtime.ubuntu": {
-        "type": "Direct",
-        "requested": "[4.4.0.4099, )",
-        "resolved": "4.4.0.4099",
-        "contentHash": "a6Ox6+gfv/3aGDizj/Eyk6X0ZaTxzvUtM2BIU47qbGQDovzSJ7Dq3dRrBifvOJRVWjRKHBnCpXo3Rv8AybwL+A==",
-        "dependencies": {
-          "Emgu.CV": "[4.4.0.4099]"
+          "Emgu.CV": "(4.5.1, 4.5.2)"
         }
       },
       "Emgu.CV.runtime.windows": {
@@ -293,6 +282,16 @@
         "contentHash": "0fp+XzK80VdsrONdzkusXd2NrNqWRYFixCuGD6mK7mQir2M+t+h6MeiV4sutCnlsg31N10I8Y1wHadmGiJx3iw==",
         "dependencies": {
           "System.Reactive": "4.1.6"
+        }
+      },
+      "Emgu.CV": {
+        "type": "Transitive",
+        "resolved": "4.5.1.4349",
+        "contentHash": "HkjpYLxh9IVK311p/MXd54hRd2mF62LEO6vswYgiFdHdSQvNmnnZR3umQYP3lcuInqK2qp75w69m5Rz9lgA2bg==",
+        "dependencies": {
+          "System.Drawing.Primitives": "4.3.0",
+          "System.Runtime": "4.3.1",
+          "System.Runtime.InteropServices.RuntimeInformation": "4.3.0"
         }
       },
       "Emgu.CV.Bitmap": {
@@ -2339,6 +2338,15 @@
       }
     },
     ".NETCoreApp,Version=v5.0/linux-x64": {
+      "Emgu.CV.runtime.ubuntu.20.04-x64": {
+        "type": "Direct",
+        "requested": "[4.5.1.4349, )",
+        "resolved": "4.5.1.4349",
+        "contentHash": "PlIbNHrIuwbcW+DEGZnwxbZmXRIb0IGzoGgTyF8LCaacouVmfYQmD6etffbIO5h1biE+F2p4sEGTABUZKnlybQ==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)"
+        }
+      },
       "Emgu.CV.runtime.windows": {
         "type": "Direct",
         "requested": "[4.5.1.4349, )",
@@ -3431,6 +3439,15 @@
       }
     },
     ".NETCoreApp,Version=v5.0/osx-x64": {
+      "Emgu.CV.runtime.ubuntu.20.04-x64": {
+        "type": "Direct",
+        "requested": "[4.5.1.4349, )",
+        "resolved": "4.5.1.4349",
+        "contentHash": "PlIbNHrIuwbcW+DEGZnwxbZmXRIb0IGzoGgTyF8LCaacouVmfYQmD6etffbIO5h1biE+F2p4sEGTABUZKnlybQ==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)"
+        }
+      },
       "Emgu.CV.runtime.windows": {
         "type": "Direct",
         "requested": "[4.5.1.4349, )",
@@ -4523,6 +4540,15 @@
       }
     },
     ".NETCoreApp,Version=v5.0/win7-x64": {
+      "Emgu.CV.runtime.ubuntu.20.04-x64": {
+        "type": "Direct",
+        "requested": "[4.5.1.4349, )",
+        "resolved": "4.5.1.4349",
+        "contentHash": "PlIbNHrIuwbcW+DEGZnwxbZmXRIb0IGzoGgTyF8LCaacouVmfYQmD6etffbIO5h1biE+F2p4sEGTABUZKnlybQ==",
+        "dependencies": {
+          "Emgu.CV": "(4.5.1, 4.5.2)"
+        }
+      },
       "Emgu.CV.runtime.windows": {
         "type": "Direct",
         "requested": "[4.5.1.4349, )",
