@@ -53,7 +53,7 @@ namespace WalletWasabi.Blockchain.Keys
 
 			BlockchainState = blockchainState ?? new BlockchainState();
 
-			AccountKeyPath = SetAccountKeyPath(accountKeyPath);
+			AccountKeyPath = SetAccountKeyPathForWallet(accountKeyPath);
 
 			SetFilePath(filePath);
 			ToFileLock = new object();
@@ -80,7 +80,7 @@ namespace WalletWasabi.Blockchain.Keys
 			var extKey = new ExtKey(encryptedSecret.GetKey(password), chainCode);
 
 			MasterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
-			AccountKeyPath = SetAccountKeyPath(accountKeyPath);
+			AccountKeyPath = SetAccountKeyPathForWallet(accountKeyPath);
 			ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
 
 			SetFilePath(filePath);
@@ -98,7 +98,7 @@ namespace WalletWasabi.Blockchain.Keys
 			return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, MasterFingerprint.Value, GetMasterExtKey(password), AccountKeyPath);
 		}
 
-		private KeyPath? SetAccountKeyPath(KeyPath? keyPath)
+		private KeyPath? SetAccountKeyPathForWallet(KeyPath? keyPath)
 		{
 			if (keyPath is not null)
 			{
@@ -110,6 +110,18 @@ namespace WalletWasabi.Blockchain.Keys
 			}
 
 			return DefaultAccountKeyPath;
+		}
+
+		public static KeyPath GetCorrectAccountKeyPath(Network network)
+		{
+			if (network == Network.TestNet)
+			{
+				return TestNetAccountKeyPath;
+			}
+			else
+			{
+				return DefaultAccountKeyPath;
+			}
 		}
 
 		[JsonProperty(Order = 1)]
@@ -194,9 +206,9 @@ namespace WalletWasabi.Blockchain.Keys
 			return new KeyManager(null, null, null, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(), filePath);
 		}
 
-		public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey extPubKey, string? filePath = null)
+		public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey extPubKey, Network network, string? filePath = null)
 		{
-			return new KeyManager(null, null, masterFingerprint, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(), filePath);
+			return new KeyManager(null, null, masterFingerprint, extPubKey, null, AbsoluteMinGapLimit, new BlockchainState(network), filePath);
 		}
 
 		public static KeyManager Recover(Mnemonic mnemonic, string password, string? filePath = null, KeyPath? accountKeyPath = null, int minGapLimit = AbsoluteMinGapLimit)
