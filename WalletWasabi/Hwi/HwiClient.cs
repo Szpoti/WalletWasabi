@@ -10,6 +10,7 @@ using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Hwi.Parsers;
 using WalletWasabi.Hwi.ProcessBridge;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Hwi
 {
@@ -49,6 +50,8 @@ namespace WalletWasabi.Hwi
 			{
 				(string responseString, int exitCode) = await Bridge.SendCommandAsync(arguments, openConsole, cancel, standardInputWriter).ConfigureAwait(false);
 
+				Logger.LogWarning(responseString);
+				Logger.LogWarning(exitCode.ToString());
 				ThrowIfError(responseString, options, arguments, exitCode);
 
 				return responseString;
