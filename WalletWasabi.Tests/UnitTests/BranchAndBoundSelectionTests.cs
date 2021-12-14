@@ -71,5 +71,30 @@ namespace WalletWasabi.Tests.UnitTests
 			Assert.True(wasSuccessful);
 			Assert.Equal(expectedCoins, selectedCoins);
 		}
+
+		[Fact]
+		public void OriginalSimpleIter4Test()
+		{
+			var utxos = new List<Money> { Money.Satoshis(12), Money.Satoshis(10), Money.Satoshis(10), Money.Satoshis(5), Money.Satoshis(4) };
+			var selector = new BranchAndBoundIter4(utxos);
+			var expectedCoins = new List<Money> { Money.Satoshis(10), Money.Satoshis(10) };
+			Money target = Money.Satoshis(20);
+
+			var wasSuccessful = selector.TryGetExactMatch(target, out List<Money> selectedCoins);
+
+			Assert.True(wasSuccessful);
+			Assert.Equal(expectedCoins, selectedCoins);
+		}
+
+		[Fact]
+		public void OriginalRandomIter4Test()
+		{
+			var selector = new BranchAndBoundIter4(AvailableCoins);
+			ulong target = Money.Satoshis(100000000);
+
+			var wasSuccessful = selector.TryGetExactMatch(target, out List<Money> selectedCoins);
+
+			Assert.True(wasSuccessful);
+		}
 	}
 }
