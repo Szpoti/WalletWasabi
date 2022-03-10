@@ -33,7 +33,7 @@ public class BlockNotifier : PeriodicRunner
 	private List<uint256> ProcessedBlocks { get; }
 
 	public P2pNode? P2pNode { get; }
-	public uint256 BestBlockHash { get; private set; }
+	public uint256 BestBlockHash { get; private set; } = uint256.Zero;
 
 	private uint256? LastInv { get; set; } = null;
 	private object LastInvLock { get; } = new object();
