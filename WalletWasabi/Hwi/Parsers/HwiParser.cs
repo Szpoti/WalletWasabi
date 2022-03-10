@@ -90,7 +90,7 @@ public static class HwiParser
 		return error is not null;
 	}
 
-	public static bool TryParseErrorCode(JToken codeToken, out HwiErrorCode code)
+	public static bool TryParseErrorCode(JToken? codeToken, out HwiErrorCode code)
 	{
 		code = default;
 
@@ -161,8 +161,11 @@ public static class HwiParser
 		if (JsonHelpers.TryParseJToken(json, out JToken? token))
 		{
 			var extPubKeyString = token["xpub"]?.ToString().Trim();
-			var extPubKey = string.IsNullOrWhiteSpace(extPubKeyString) ? null : NBitcoinHelpers.BetterParseExtPubKey(extPubKeyString);
-			return extPubKey;
+			if (string.IsNullOrWhiteSpace(extPubKeyString))
+			{
+				throw new InvalidOperationException($"Can't parse whitespace or null into ExtPubKey.");
+			}
+			return NBitcoinHelpers.BetterParseExtPubKey(extPubKeyString);
 		}
 		else
 		{
@@ -209,6 +212,10 @@ public static class HwiParser
 		if (JsonHelpers.TryParseJToken(json, out JToken? token))
 		{
 			var psbtString = token["psbt"]?.ToString()?.Trim() ?? null;
+			if (psbtString is null)
+			{
+				throw new FormatException("Can't parse PSBT, value was null.");
+			}
 			var psbt = PSBT.Parse(psbtString, network);
 			return psbt;
 		}
@@ -366,7 +373,7 @@ public static class HwiParser
 			{
 				argumentBuilder.Append(' ');
 			}
-			argumentBuilder.Append(command.ToString().ToLowerInvariant());
+			argumentBuilder.Append(command.ToString()!.ToLowerInvariant());
 		}
 
 		commandArguments = Guard.Correct(commandArguments);
