@@ -11,8 +11,8 @@ public sealed class ECISet
 
 	private const int ECIIndicatorNumBits = 4;
 
-	private Dictionary<string, int> _nameToValue;
-	private Dictionary<int, string> _valueToName;
+	private Dictionary<string, int> _nameToValue = new();
+	private Dictionary<int, string> _valueToName = new();
 
 	/// <summary>
 	/// Initialize ECI Set.
