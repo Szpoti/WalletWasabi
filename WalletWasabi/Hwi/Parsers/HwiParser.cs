@@ -184,6 +184,10 @@ public static class HwiParser
 		if (JsonHelpers.TryParseJToken(json, out JToken? token))
 		{
 			var addressString = token["address"]?.ToString()?.Trim() ?? null;
+			if (string.IsNullOrWhiteSpace(addressString))
+			{
+				throw new ArgumentNullException($"Can't parse null or whitespace to {nameof(BitcoinAddress)}.");
+			}
 			try
 			{
 				var address = BitcoinAddress.Create(addressString, network);
