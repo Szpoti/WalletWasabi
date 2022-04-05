@@ -20,7 +20,7 @@ public class WabiSabiCoordinator : BackgroundService
 	public WabiSabiCoordinator(CoordinatorParameters parameters, CoinJoinIdStore coinJoinIdStore, IRPCClient rpc)
 	{
 		Parameters = parameters;
-
+		CoinJoinIdStore = coinJoinIdStore;
 		Warden = new(parameters.UtxoWardenPeriod, parameters.PrisonFilePath, Config);
 		ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => Logger.LogInfo("WabiSabi configuration has changed."));
 
@@ -39,7 +39,6 @@ public class WabiSabiCoordinator : BackgroundService
 			Config,
 			rpc,
 			Warden.Prison,
-			coinJoinIdStore,
 			transactionArchiver,
 			coinJoinScriptStore);
 
@@ -51,6 +50,7 @@ public class WabiSabiCoordinator : BackgroundService
 	public Warden Warden { get; }
 
 	public CoordinatorParameters Parameters { get; }
+	public CoinJoinIdStore CoinJoinIdStore { get; private set; }
 	public Arena Arena { get; }
 
 	public CoinJoinFeeRateStatStore CoinJoinFeeRateStatStore { get; }
@@ -59,6 +59,8 @@ public class WabiSabiCoordinator : BackgroundService
 
 	private void Arena_CoinJoinBroadcast(object? sender, Transaction e)
 	{
+		CoinJoinIdStore.Append(e.GetHash());
+
 		var coinJoinScriptStoreFilePath = Parameters.CoinJoinScriptStoreFilePath;
 		try
 		{
