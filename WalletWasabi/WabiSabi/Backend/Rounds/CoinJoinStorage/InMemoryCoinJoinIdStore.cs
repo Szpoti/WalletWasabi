@@ -40,4 +40,20 @@ public class InMemoryCoinJoinIdStore
 		var store = new InMemoryCoinJoinIdStore(lines);
 		return store;
 	}
+
+	public void ImportWW1CoinJoinsToWW2(string ww1CoinJoinsFilePath, string coinJoinIdStoreFilePath)
+	{
+		var ww1CoinJoins = File.ReadAllLines(ww1CoinJoinsFilePath);
+
+		var coinJoins = File.ReadAllLines(coinJoinIdStoreFilePath);
+		var missingWw1 = ww1CoinJoins.Except(coinJoins);
+		if (missingWw1.Any())
+		{
+			foreach (var coinjoinId in missingWw1)
+			{
+				Add(uint256.Parse(coinjoinId));
+			}
+			File.AppendAllLines(coinJoinIdStoreFilePath, missingWw1);
+		}
+	}
 }
