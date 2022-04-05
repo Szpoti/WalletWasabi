@@ -17,7 +17,7 @@ namespace WalletWasabi.WabiSabi;
 
 public class WabiSabiCoordinator : BackgroundService
 {
-	public WabiSabiCoordinator(CoordinatorParameters parameters, IRPCClient rpc)
+	public WabiSabiCoordinator(CoordinatorParameters parameters, CoinJoinIdStore coinJoinIdStore, IRPCClient rpc)
 	{
 		Parameters = parameters;
 
@@ -30,8 +30,6 @@ public class WabiSabiCoordinator : BackgroundService
 		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinFeeRateStatStoreFilePath);
 		CoinJoinFeeRateStatStore.NewStat += FeeRateStatStore_NewStat;
 
-		var inMemoryCoinJoinIdStore = InMemoryCoinJoinIdStore.LoadFromFile(parameters.CoinJoinIdStoreFilePath);
-
 		var coinJoinScriptStore = CoinJoinScriptStore.LoadFromFile(parameters.CoinJoinScriptStoreFilePath);
 		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinScriptStoreFilePath);
 
@@ -41,7 +39,7 @@ public class WabiSabiCoordinator : BackgroundService
 			Config,
 			rpc,
 			Warden.Prison,
-			inMemoryCoinJoinIdStore,
+			coinJoinIdStore,
 			transactionArchiver,
 			coinJoinScriptStore);
 
@@ -61,16 +59,6 @@ public class WabiSabiCoordinator : BackgroundService
 
 	private void Arena_CoinJoinBroadcast(object? sender, Transaction e)
 	{
-		var coinJoinIdStoreFilePath = Parameters.CoinJoinIdStoreFilePath;
-		try
-		{
-			File.AppendAllLines(coinJoinIdStoreFilePath, new[] { e.GetHash().ToString() });
-		}
-		catch (Exception ex)
-		{
-			Logger.LogError($"Could not write file {coinJoinIdStoreFilePath}.", ex);
-		}
-
 		var coinJoinScriptStoreFilePath = Parameters.CoinJoinScriptStoreFilePath;
 		try
 		{

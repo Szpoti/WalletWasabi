@@ -16,6 +16,7 @@ using WalletWasabi.CoinJoin.Coordinator.Participants;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 
 namespace WalletWasabi.CoinJoin.Coordinator;
 
@@ -23,14 +24,14 @@ public class Coordinator : IDisposable
 {
 	private volatile bool _disposedValue = false; // To detect redundant calls
 
-	public Coordinator(Network network, BlockNotifier blockNotifier, string folderPath, IRPCClient rpc, CoordinatorRoundConfig roundConfig)
+	public Coordinator(Network network, BlockNotifier blockNotifier, string folderPath, IRPCClient rpc, CoordinatorRoundConfig roundConfig, CoinJoinIdStore coinJoinIdStore)
 	{
 		Network = Guard.NotNull(nameof(network), network);
 		BlockNotifier = Guard.NotNull(nameof(blockNotifier), blockNotifier);
 		FolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(folderPath), folderPath, trim: true);
 		RpcClient = Guard.NotNull(nameof(rpc), rpc);
 		RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
-
+		CoinJoinIdStore = Guard.NotNull(nameof(coinJoinIdStore), coinJoinIdStore);
 		Rounds = ImmutableList<CoordinatorRound>.Empty;
 
 		LastSuccessfulCoinJoinTime = DateTimeOffset.UtcNow;
@@ -127,8 +128,6 @@ public class Coordinator : IDisposable
 		BlockNotifier.OnBlock += BlockNotifier_OnBlockAsync;
 	}
 
-	public event EventHandler<Transaction>? CoinJoinBroadcasted;
-
 	public DateTimeOffset LastSuccessfulCoinJoinTime { get; private set; }
 
 	private ImmutableList<CoordinatorRound> Rounds { get; set; }
@@ -143,7 +142,7 @@ public class Coordinator : IDisposable
 	public IRPCClient RpcClient { get; }
 
 	public CoordinatorRoundConfig RoundConfig { get; private set; }
-
+	public CoinJoinIdStore CoinJoinIdStore { get; private set; }
 	public Network Network { get; }
 
 	public BlockNotifier BlockNotifier { get; }
@@ -219,7 +218,6 @@ public class Coordinator : IDisposable
 		{
 			int confirmationTarget = await AdjustConfirmationTargetAsync(lockCoinJoins: true).ConfigureAwait(false);
 			var round = new CoordinatorRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate, TimeSpan.FromSeconds(RoundConfig.InputRegistrationTimeout));
-			round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 			round.StatusChanged += Round_StatusChangedAsync;
 			await round.ExecuteNextPhaseAsync(RoundPhase.InputRegistration).ConfigureAwait(false);
 			Rounds = Rounds.Add(round);
@@ -259,11 +257,6 @@ public class Coordinator : IDisposable
 		}
 	}
 
-	private void Round_CoinJoinBroadcasted(object? sender, Transaction transaction)
-	{
-		CoinJoinBroadcasted?.Invoke(sender, transaction);
-	}
-
 	private async void Round_StatusChangedAsync(object? sender, CoordinatorRoundStatus status)
 	{
 		try
@@ -299,7 +292,7 @@ public class Coordinator : IDisposable
 						UnconfirmedCoinJoins.Add(coinJoinHash);
 					}
 					LastSuccessfulCoinJoinTime = DateTimeOffset.UtcNow;
-					await File.AppendAllLinesAsync(CoinJoinsFilePath, new[] { coinJoinHash.ToString() }).ConfigureAwait(false);
+					CoinJoinIdStore.Append(coinJoinHash);
 
 					// When a round succeeded, adjust the denomination as to users still be able to register with the latest round's active output amount.
 					IEnumerable<(Money value, int count)> outputs = round.CoinJoin.GetIndistinguishableOutputs(includeSingle: true);
@@ -368,7 +361,6 @@ public class Coordinator : IDisposable
 			if (status is CoordinatorRoundStatus.Aborted or CoordinatorRoundStatus.Succeded)
 			{
 				round.StatusChanged -= Round_StatusChangedAsync;
-				round.CoinJoinBroadcasted -= Round_CoinJoinBroadcasted;
 			}
 		}
 		catch (Exception ex)
@@ -447,7 +439,6 @@ public class Coordinator : IDisposable
 				foreach (CoordinatorRound round in Rounds)
 				{
 					round.StatusChanged -= Round_StatusChangedAsync;
-					round.CoinJoinBroadcasted -= Round_CoinJoinBroadcasted;
 				}
 
 				try

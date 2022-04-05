@@ -14,6 +14,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi;
+using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 
 namespace WalletWasabi.Backend;
 
@@ -34,7 +35,7 @@ public class Global
 	public HostedServices HostedServices { get; }
 
 	public IndexBuilderService IndexBuilderService { get; private set; }
-
+	public CoinJoinIdStore CoinJoinIdStore { get; private set; }
 	public Coordinator Coordinator { get; private set; }
 
 	public Config Config { get; private set; }
@@ -54,9 +55,6 @@ public class Global
 		await InitializeP2pAsync(config.Network, config.GetBitcoinP2pEndPoint(), cancel);
 
 		HostedServices.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(21), RpcClient, P2pNode), "Full Node Mempool Mirror");
-
-		CoordinatorParameters coordinatorParameters = new(DataDir);
-		HostedServices.Register<WabiSabiCoordinator>(() => new WabiSabiCoordinator(coordinatorParameters, RpcClient), "WabiSabi Coordinator");
 
 		if (roundConfig.FilePath is { })
 		{
@@ -84,7 +82,14 @@ public class Global
 		var indexBuilderServiceDir = Path.Combine(DataDir, "IndexBuilderService");
 		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
 		var blockNotifier = HostedServices.Get<BlockNotifier>();
-		Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
+
+		CoordinatorParameters coordinatorParameters = new(DataDir);
+
+		CoinJoinIdStore = new(coordinatorParameters.CoinJoinIdStoreFilePath);
+		Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig, CoinJoinIdStore);
+		CoinJoinIdStore.FetchOldCoinJoins(Coordinator.CoinJoinsFilePath, coordinatorParameters.CoinJoinIdStoreFilePath);
+
+		HostedServices.Register<WabiSabiCoordinator>(() => new WabiSabiCoordinator(coordinatorParameters, CoinJoinIdStore, RpcClient), "WabiSabi Coordinator");
 		HostedServices.Register<RoundBootstrapper>(() => new RoundBootstrapper(TimeSpan.FromMilliseconds(100), Coordinator), "Round Bootstrapper");
 
 		await HostedServices.StartAllAsync(cancel);
