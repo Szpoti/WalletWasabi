@@ -218,6 +218,7 @@ public class Coordinator : IDisposable
 		{
 			int confirmationTarget = await AdjustConfirmationTargetAsync(lockCoinJoins: true).ConfigureAwait(false);
 			var round = new CoordinatorRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget, RoundConfig.ConfirmationTarget, RoundConfig.ConfirmationTargetReductionRate, TimeSpan.FromSeconds(RoundConfig.InputRegistrationTimeout));
+			round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 			round.StatusChanged += Round_StatusChangedAsync;
 			await round.ExecuteNextPhaseAsync(RoundPhase.InputRegistration).ConfigureAwait(false);
 			Rounds = Rounds.Add(round);
@@ -257,6 +258,11 @@ public class Coordinator : IDisposable
 		}
 	}
 
+	private void Round_CoinJoinBroadcasted(object? sender, Transaction e)
+	{
+		CoinJoinIdStore.Append(e.GetHash());
+	}
+
 	private async void Round_StatusChangedAsync(object? sender, CoordinatorRoundStatus status)
 	{
 		try
@@ -292,7 +298,8 @@ public class Coordinator : IDisposable
 						UnconfirmedCoinJoins.Add(coinJoinHash);
 					}
 					LastSuccessfulCoinJoinTime = DateTimeOffset.UtcNow;
-					CoinJoinIdStore.Append(coinJoinHash);
+
+					await File.AppendAllLinesAsync(CoinJoinsFilePath, new[] { coinJoinHash.ToString() }).ConfigureAwait(false);
 
 					// When a round succeeded, adjust the denomination as to users still be able to register with the latest round's active output amount.
 					IEnumerable<(Money value, int count)> outputs = round.CoinJoin.GetIndistinguishableOutputs(includeSingle: true);
@@ -361,6 +368,7 @@ public class Coordinator : IDisposable
 			if (status is CoordinatorRoundStatus.Aborted or CoordinatorRoundStatus.Succeded)
 			{
 				round.StatusChanged -= Round_StatusChangedAsync;
+				round.CoinJoinBroadcasted -= Round_CoinJoinBroadcasted;
 			}
 		}
 		catch (Exception ex)
@@ -439,6 +447,7 @@ public class Coordinator : IDisposable
 				foreach (CoordinatorRound round in Rounds)
 				{
 					round.StatusChanged -= Round_StatusChangedAsync;
+					round.CoinJoinBroadcasted -= Round_CoinJoinBroadcasted;
 				}
 
 				try
