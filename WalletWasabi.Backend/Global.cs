@@ -18,7 +18,7 @@ using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 
 namespace WalletWasabi.Backend;
 
-public class Global
+public class Global : IAsyncDisposable
 {
 	public Global(string dataDir)
 	{
@@ -166,6 +166,36 @@ public class Global
 		{
 			Logger.LogError($"{Constants.BuiltinBitcoinNodeName} is not running, or incorrect RPC credentials, or network is given in the config file: `{Config.FilePath}`.");
 			throw;
+		}
+	}
+
+	public async ValueTask DisposeAsync()
+	{
+		Coordinator.CoinJoinBroadcasted -= Coordinator_CoinJoinBroadcasted;
+
+		if (Coordinator is { } coordinator)
+		{
+			coordinator.Dispose();
+			Logger.LogInfo($"{nameof(coordinator)} is disposed.");
+		}
+
+		if (IndexBuilderService is { } indexBuilderService)
+		{
+			await indexBuilderService.StopAsync();
+			Logger.LogInfo($"{nameof(indexBuilderService)} is stopped.");
+		}
+
+		if (HostedServices is { } hostedServices)
+		{
+			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
+			await hostedServices.StopAllAsync(cts.Token);
+			hostedServices.Dispose();
+		}
+
+		if (P2pNode is { } p2pNode)
+		{
+			await p2pNode.DisposeAsync();
+			Logger.LogInfo($"{nameof(p2pNode)} is disposed.");
 		}
 	}
 }

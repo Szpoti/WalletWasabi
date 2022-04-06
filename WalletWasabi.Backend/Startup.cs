@@ -119,34 +119,7 @@ public class Startup
 
 	private async Task CleanupAsync(Global global)
 	{
-		var coordinator = global.Coordinator;
-		if (coordinator is { })
-		{
-			coordinator.Dispose();
-			Logger.LogInfo($"{nameof(coordinator)} is disposed.");
-		}
-
-		var indexBuilderService = global.IndexBuilderService;
-		if (indexBuilderService is { })
-		{
-			await indexBuilderService.StopAsync();
-			Logger.LogInfo($"{nameof(indexBuilderService)} is stopped.");
-		}
-
-		var hostedServices = global.HostedServices;
-		if (hostedServices is { })
-		{
-			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
-			await hostedServices.StopAllAsync(cts.Token);
-			hostedServices.Dispose();
-		}
-
-		var p2pNode = global.P2pNode;
-		if (p2pNode is { })
-		{
-			await p2pNode.DisposeAsync();
-			Logger.LogInfo($"{nameof(p2pNode)} is disposed.");
-		}
+		await global.DisposeAsync().ConfigureAwait(false);
 
 		Logger.LogSoftwareStopped("Wasabi Backend");
 	}
