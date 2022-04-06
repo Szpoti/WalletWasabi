@@ -35,7 +35,7 @@ public class Global
 	public HostedServices HostedServices { get; }
 
 	public IndexBuilderService IndexBuilderService { get; private set; }
-	public CoinJoinIdStore CoinJoinIdStore { get; private set; }
+	public ICoinJoinIdStore CoinJoinIdStore { get; private set; }
 	public Coordinator Coordinator { get; private set; }
 
 	public Config Config { get; private set; }
@@ -88,7 +88,7 @@ public class Global
 		Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
 		Coordinator.CoinJoinBroadcasted += Coordinator_CoinJoinBroadcasted;
 
-		CoinJoinIdStore = new(coordinatorParameters.CoinJoinIdStoreFilePath);
+		CoinJoinIdStore = new CoinJoinIdStore(coordinatorParameters.CoinJoinIdStoreFilePath);
 		CoinJoinIdStore.FetchOldCoinJoins(Coordinator.CoinJoinsFilePath, coordinatorParameters.CoinJoinIdStoreFilePath);
 
 		HostedServices.Register<WabiSabiCoordinator>(() => new WabiSabiCoordinator(coordinatorParameters, CoinJoinIdStore, RpcClient), "WabiSabi Coordinator");

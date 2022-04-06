@@ -12,4 +12,6 @@ public interface ICoinJoinIdStore
 	public void Append(uint256 id);
 
 	public bool Contains(uint256 id);
+
+	void FetchOldCoinJoins(string coinJoinsFilePath, string coinJoinIdStoreFilePath);
 }
