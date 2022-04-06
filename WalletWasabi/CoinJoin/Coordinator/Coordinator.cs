@@ -16,7 +16,6 @@ using WalletWasabi.CoinJoin.Coordinator.Participants;
 using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 
 namespace WalletWasabi.CoinJoin.Coordinator;
 
@@ -258,9 +257,9 @@ public class Coordinator : IDisposable
 		}
 	}
 
-	private void Round_CoinJoinBroadcasted(object? sender, Transaction e)
+	private void Round_CoinJoinBroadcasted(object? sender, Transaction transaction)
 	{
-		CoinJoinBroadcasted?.Invoke(sender, e);
+		CoinJoinBroadcasted?.Invoke(sender, transaction);
 	}
 
 	private async void Round_StatusChangedAsync(object? sender, CoordinatorRoundStatus status)

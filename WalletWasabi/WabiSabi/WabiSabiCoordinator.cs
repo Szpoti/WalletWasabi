@@ -39,7 +39,7 @@ public class WabiSabiCoordinator : BackgroundService
 			Config,
 			rpc,
 			Warden.Prison,
-			coinJoinIdStore
+			coinJoinIdStore,
 			transactionArchiver,
 			coinJoinScriptStore);
 

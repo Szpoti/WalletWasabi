@@ -15,10 +15,10 @@ public class CoinJoinIdStore : ICoinJoinIdStore
 	public string CoinJoinsFilePath { get; set; }
 	private object FileWriteLock { get; set; } = new();
 
-	public CoinJoinIdStore(string ww2CJFilePath)
+	public CoinJoinIdStore(string ww2CoinjoinsFilePath)
 	{
-		CoinJoinsFilePath = ww2CJFilePath;
-		InMemoryCoinJoinIdStore = InMemoryCoinJoinIdStore.LoadFromFile(ww2CJFilePath);
+		CoinJoinsFilePath = ww2CoinjoinsFilePath;
+		InMemoryCoinJoinIdStore = InMemoryCoinJoinIdStore.LoadFromFile(ww2CoinjoinsFilePath);
 	}
 
 	public void Append(uint256 id)

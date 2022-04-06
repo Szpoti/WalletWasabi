@@ -114,13 +114,7 @@ public class Startup
 
 	private void OnShutdown(Global global)
 	{
-		CleanupAsync(global).GetAwaiter().GetResult(); // This is needed, if async function is registered then it won't wait until it finishes
-	}
-
-	private async Task CleanupAsync(Global global)
-	{
-		await global.DisposeAsync().ConfigureAwait(false);
-
+		global.Dispose();
 		Logger.LogSoftwareStopped("Wasabi Backend");
 	}
 }
