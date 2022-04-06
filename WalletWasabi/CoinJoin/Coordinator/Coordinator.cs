@@ -24,14 +24,13 @@ public class Coordinator : IDisposable
 {
 	private volatile bool _disposedValue = false; // To detect redundant calls
 
-	public Coordinator(Network network, BlockNotifier blockNotifier, string folderPath, IRPCClient rpc, CoordinatorRoundConfig roundConfig, CoinJoinIdStore coinJoinIdStore)
+	public Coordinator(Network network, BlockNotifier blockNotifier, string folderPath, IRPCClient rpc, CoordinatorRoundConfig roundConfig)
 	{
 		Network = Guard.NotNull(nameof(network), network);
 		BlockNotifier = Guard.NotNull(nameof(blockNotifier), blockNotifier);
 		FolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(folderPath), folderPath, trim: true);
 		RpcClient = Guard.NotNull(nameof(rpc), rpc);
 		RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
-		CoinJoinIdStore = Guard.NotNull(nameof(coinJoinIdStore), coinJoinIdStore);
 		Rounds = ImmutableList<CoordinatorRound>.Empty;
 
 		LastSuccessfulCoinJoinTime = DateTimeOffset.UtcNow;
@@ -128,6 +127,8 @@ public class Coordinator : IDisposable
 		BlockNotifier.OnBlock += BlockNotifier_OnBlockAsync;
 	}
 
+	public event EventHandler<Transaction>? CoinJoinBroadcasted;
+
 	public DateTimeOffset LastSuccessfulCoinJoinTime { get; private set; }
 
 	private ImmutableList<CoordinatorRound> Rounds { get; set; }
@@ -142,7 +143,6 @@ public class Coordinator : IDisposable
 	public IRPCClient RpcClient { get; }
 
 	public CoordinatorRoundConfig RoundConfig { get; private set; }
-	public CoinJoinIdStore CoinJoinIdStore { get; private set; }
 	public Network Network { get; }
 
 	public BlockNotifier BlockNotifier { get; }
@@ -260,7 +260,7 @@ public class Coordinator : IDisposable
 
 	private void Round_CoinJoinBroadcasted(object? sender, Transaction e)
 	{
-		CoinJoinIdStore.Append(e.GetHash());
+		CoinJoinBroadcasted?.Invoke(sender, e);
 	}
 
 	private async void Round_StatusChangedAsync(object? sender, CoordinatorRoundStatus status)

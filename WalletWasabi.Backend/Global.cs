@@ -85,8 +85,10 @@ public class Global
 
 		CoordinatorParameters coordinatorParameters = new(DataDir);
 
+		Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig);
+		Coordinator.CoinJoinBroadcasted += Coordinator_CoinJoinBroadcasted;
+
 		CoinJoinIdStore = new(coordinatorParameters.CoinJoinIdStoreFilePath);
-		Coordinator = new(RpcClient.Network, blockNotifier, Path.Combine(DataDir, "CcjCoordinator"), RpcClient, roundConfig, CoinJoinIdStore);
 		CoinJoinIdStore.FetchOldCoinJoins(Coordinator.CoinJoinsFilePath, coordinatorParameters.CoinJoinIdStoreFilePath);
 
 		HostedServices.Register<WabiSabiCoordinator>(() => new WabiSabiCoordinator(coordinatorParameters, CoinJoinIdStore, RpcClient), "WabiSabi Coordinator");
@@ -97,6 +99,11 @@ public class Global
 		IndexBuilderService = new(RpcClient, blockNotifier, indexFilePath);
 		IndexBuilderService.Synchronize();
 		Logger.LogInfo($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
+	}
+
+	private void Coordinator_CoinJoinBroadcasted(object? sender, Transaction e)
+	{
+		CoinJoinIdStore.Append(e.GetHash());
 	}
 
 	private async Task InitializeP2pAsync(Network network, EndPoint endPoint, CancellationToken cancel)
