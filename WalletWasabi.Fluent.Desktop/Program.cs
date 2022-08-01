@@ -126,6 +126,11 @@ public class Program
 		{
 			Logger.LogDebug(ex);
 		}
+		catch (FormatException ex)
+		{
+			exceptionToReport = new FormatException("Failed to parse Index hex. Resynchronize needed, please restart Wasabi.", ex);
+			Logger.LogCritical(ex);
+		}
 		catch (Exception ex)
 		{
 			exceptionToReport = ex;
