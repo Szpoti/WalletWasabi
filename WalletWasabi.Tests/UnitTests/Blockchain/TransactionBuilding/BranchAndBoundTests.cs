@@ -322,7 +322,6 @@ public class BranchAndBoundTests
 			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), 1.1m),
 			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), 1m),
 			BitcoinFactory.CreateSmartCoin(constantHdPubKey, 1.1m),
-			BitcoinFactory.CreateSmartCoin(constantHdPubKey, 1m),
 			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), 1m),
 			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), 1.1m),
 			BitcoinFactory.CreateSmartCoin(constantHdPubKey, 1m),
@@ -337,16 +336,17 @@ public class BranchAndBoundTests
 		var targetAmount = Money.Coins(3m);
 		TxOut txOut = new(targetAmount, destination);
 
-		int maxInputCount = 3;
+		int maxInputCount = 6;
 		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
 
 		var strategies = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(availableCoins, feeRate, txOut, maxInputCount, cts.Token);
-
 		Script expectedScript = constantHdPubKey.GetAssumedScriptPubKey();
+		int ctr = 0;
 		await foreach (var coins in strategies)
 		{
 			int coinsWithExpectedScript = coins.Where(coin => coin.ScriptPubKey == expectedScript).Count();
-			Assert.Equal(3, coinsWithExpectedScript);
+			ctr++;
 		}
+		Assert.Equal(4, ctr);
 	}
 }

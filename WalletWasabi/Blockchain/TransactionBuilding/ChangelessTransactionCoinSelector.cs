@@ -24,13 +24,68 @@ public static class ChangelessTransactionCoinSelector
 		// target = target amount + output cost
 		long target = txOut.Value.Satoshi + feeRate.GetFee(txOut.ScriptPubKey.EstimateOutputVsize()).Satoshi;
 
+		IEnumerable<SmartCoin> coinsToUse = availableCoins;
+
+		var coinsByScript = availableCoins
+			.GroupBy(coin => coin.ScriptPubKey.Hash)
+			.Where(group => group.Sum(coin => coin.Amount) > target * 0.75)
+			.OrderBy(group => group.Sum(coin => coin.Amount))
+			.ToList();
+
+		List<Task<IEnumerable<SmartCoin>>> tasks = new();
+
+		var enumerator = coinsByScript.GetEnumerator();
+		bool shouldIterate = true;
+		do
+		{
+			if (!enumerator.MoveNext())
+			{
+				shouldIterate = false;
+				coinsToUse = availableCoins;
+			}
+			else
+			{
+				coinsToUse = enumerator.Current;
+			}
+
+			SelectionStrategy[] strategies = GetSelectionStrategies(target, coinsToUse, feeRate, maxInputCount, out Dictionary<SmartCoin, long> inputEffectiveValues);
+
+			foreach (var strategy in strategies)
+			{
+				tasks.Add(Task.Run(
+					() =>
+					{
+						if (TryGetCoins(strategy, inputEffectiveValues, out IEnumerable<SmartCoin>? coins, cancellationToken))
+						{
+							return coins;
+						}
+
+						return Enumerable.Empty<SmartCoin>();
+					},
+					cancellationToken));
+			}
+		} while (shouldIterate);
+
+		foreach (var task in tasks)
+		{
+			var result = await task.ConfigureAwait(false);
+			if (!result.Any())
+			{
+				continue;
+			}
+			yield return await task.ConfigureAwait(false);
+		}
+	}
+
+	private static SelectionStrategy[] GetSelectionStrategies(long target, IEnumerable<SmartCoin> availableCoins, FeeRate feeRate, int maxInputCount, out Dictionary<SmartCoin, long> inputEffectiveValues)
+	{
 		// Keys are effective values of smart coins in satoshis.
 		IOrderedEnumerable<SmartCoin> sortedCoins = availableCoins.OrderByDescending(x => x.EffectiveValue(feeRate).Satoshi);
 
 		// How much it costs to spend each coin.
 		long[] inputCosts = sortedCoins.Select(x => feeRate.GetFee(x.ScriptPubKey.EstimateInputVsize()).Satoshi).ToArray();
 
-		Dictionary<SmartCoin, long> inputEffectiveValues = new(sortedCoins.ToDictionary(x => x, x => x.EffectiveValue(feeRate).Satoshi));
+		inputEffectiveValues = new(sortedCoins.ToDictionary(x => x, x => x.EffectiveValue(feeRate).Satoshi));
 
 		// Pass smart coins' effective values in descending order.
 		long[] inputValues = inputEffectiveValues.Values.ToArray();
@@ -43,24 +98,7 @@ public static class ChangelessTransactionCoinSelector
 			new LessSelectionStrategy(parameters)
 		};
 
-		var tasks = strategies
-			.Select(strategy => Task.Run(
-				() =>
-				{
-					if (TryGetCoins(strategy, inputEffectiveValues, out IEnumerable<SmartCoin>? coins, cancellationToken))
-					{
-						return coins;
-					}
-
-					return Enumerable.Empty<SmartCoin>();
-				},
-				cancellationToken))
-			.ToArray();
-
-		foreach (var task in tasks)
-		{
-			yield return await task.ConfigureAwait(false);
-		}
+		return strategies;
 	}
 
 	/// <summary>
