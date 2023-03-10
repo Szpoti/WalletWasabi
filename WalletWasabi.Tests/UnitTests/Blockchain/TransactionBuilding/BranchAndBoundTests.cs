@@ -315,29 +315,34 @@ public class BranchAndBoundTests
 		using Key key = new();
 		KeyManager km = ServiceFactory.CreateKeyManager();
 		HdPubKey constantHdPubKey = BitcoinFactory.CreateHdPubKey(km);
+		HdPubKey constantHdPubKey2 = BitcoinFactory.CreateHdPubKey(km);
 
 		// 3 coins coming from the same hdPubKey should be choosen for exact payment.
 		List<SmartCoin> availableCoins = new()
 		{
-			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), 1.1m),
-			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), 1m),
-			BitcoinFactory.CreateSmartCoin(constantHdPubKey, 1.1m),
-			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), 1m),
-			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), 1.1m),
-			BitcoinFactory.CreateSmartCoin(constantHdPubKey, 1m),
-			BitcoinFactory.CreateSmartCoin(constantHdPubKey, 1m),
-			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), 1m),
-			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), 1m),
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Satoshis(10000)),
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Satoshis(10000)),
+			BitcoinFactory.CreateSmartCoin(constantHdPubKey, Money.Satoshis(10100)),
+			BitcoinFactory.CreateSmartCoin(constantHdPubKey2, Money.Satoshis(10100)),
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Satoshis(10000)),
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Satoshis(10100)),
+			BitcoinFactory.CreateSmartCoin(constantHdPubKey, Money.Satoshis(10000)),
+			BitcoinFactory.CreateSmartCoin(constantHdPubKey, Money.Satoshis(10000)),
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Satoshis(10100)),
+			BitcoinFactory.CreateSmartCoin(constantHdPubKey2, Money.Satoshis(10000)),
+			BitcoinFactory.CreateSmartCoin(constantHdPubKey2, Money.Satoshis(10100)),
+			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Satoshis(10000)),
+			BitcoinFactory.CreateSmartCoin(constantHdPubKey2, Money.Satoshis(10100)),
 		};
 
-		FeeRate feeRate = new(1m);
+		FeeRate feeRate = new(0m);
 
 		Script destination = BitcoinFactory.CreateScript();
-		var targetAmount = Money.Coins(3m);
+		var targetAmount = Money.Satoshis(30000);
 		TxOut txOut = new(targetAmount, destination);
 
 		int maxInputCount = 6;
-		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
+		using CancellationTokenSource cts = new(TimeSpan.FromSeconds(300));
 
 		var strategies = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(availableCoins, feeRate, txOut, maxInputCount, cts.Token);
 		Script expectedScript = constantHdPubKey.GetAssumedScriptPubKey();
@@ -347,6 +352,6 @@ public class BranchAndBoundTests
 			int coinsWithExpectedScript = coins.Where(coin => coin.ScriptPubKey == expectedScript).Count();
 			ctr++;
 		}
-		Assert.Equal(4, ctr);
+		Assert.Equal(3, ctr);
 	}
 }

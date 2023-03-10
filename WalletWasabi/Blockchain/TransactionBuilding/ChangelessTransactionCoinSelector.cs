@@ -28,9 +28,10 @@ public static class ChangelessTransactionCoinSelector
 
 		var coinsByScript = availableCoins
 			.GroupBy(coin => coin.ScriptPubKey.Hash)
-			.Where(group => group.Sum(coin => coin.Amount) > target * 0.75)
 			.OrderBy(group => group.Sum(coin => coin.Amount))
 			.ToList();
+
+		// Expand address reused coins with non-resued to get results?
 
 		List<Task<IEnumerable<SmartCoin>>> tasks = new();
 
