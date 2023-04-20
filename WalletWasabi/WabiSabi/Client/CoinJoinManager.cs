@@ -391,6 +391,7 @@ public class CoinJoinManager : BackgroundService
 	private async Task HandleCoinJoinFinalizationAsync(CoinJoinTracker finishedCoinJoin, ConcurrentDictionary<string, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, CancellationToken cancellationToken)
 	{
 		var wallet = finishedCoinJoin.Wallet;
+		CoinJoinClientException? possibleException = null;
 		try
 		{
 			var result = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
@@ -407,6 +408,7 @@ public class CoinJoinManager : BackgroundService
 		}
 		catch (CoinJoinClientException clientException)
 		{
+			possibleException = clientException;
 			Logger.LogDebug(clientException);
 		}
 		catch (InvalidOperationException ioe)
@@ -445,13 +447,10 @@ public class CoinJoinManager : BackgroundService
 		{
 			NotifyWalletStoppedCoinJoin(wallet);
 		}
-		else if (wallet.IsUnderPlebStop && !finishedCoinJoin.OverridePlebStop)  // If wallet is under PlebStop threshold and user do not override it.
+		else if (possibleException is not null)  // If wallet is under PlebStop threshold and user do not override it.
 		{
-			NotifyCoinJoinStartError(wallet, CoinjoinError.NotEnoughUnprivateBalance);
-		}
-		else if (await wallet.IsWalletPrivateAsync().ConfigureAwait(false) && finishedCoinJoin.StopWhenAllMixed)    // If wallet is private and wallet needs to stop CJing when it's private.
-		{
-			NotifyCoinJoinStartError(wallet, CoinjoinError.AllCoinsPrivate);
+			ScheduleRestartAutomatically(wallet, trackedAutoStarts, finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, cancellationToken);
+			NotifyCoinJoinStartError(wallet, possibleException.CoinjoinError);
 		}
 		else
 		{
