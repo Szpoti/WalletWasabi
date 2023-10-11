@@ -18,7 +18,8 @@ public class TransactionFactoryTests
 	[Fact]
 	public void InsufficientBalance()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
 		{
 			("Martin", 0, 0.01m, confirmed: true, anonymitySet: 1),
 			("Jean",   1, 0.02m, confirmed: true, anonymitySet: 1)
@@ -38,7 +39,8 @@ public class TransactionFactoryTests
 	[Fact]
 	public void TooMuchFeePaid()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
 		{
 			("Pablo", 0, 0.0001m, confirmed: true, anonymitySet: 1)
 		});
@@ -62,7 +64,8 @@ public class TransactionFactoryTests
 	[Fact]
 	public void SelectMostPrivateIndependentlyOfCluster()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
 		{
 			("", 0, 0.08m, confirmed: true, anonymitySet: 50),
 			("", 1, 0.16m, confirmed: true, anonymitySet: 200)
@@ -93,7 +96,8 @@ public class TransactionFactoryTests
 	[Fact]
 	public void SelectMostPrivateCoin()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
 		{
 			("Maria",  0, 0.08m, confirmed: true, anonymitySet: 50),
 			("Joseph", 1, 0.16m, confirmed: true, anonymitySet: 200)
@@ -123,7 +127,8 @@ public class TransactionFactoryTests
 	[Fact]
 	public void SelectMostPrivateCoins()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
 		{
 			("Pablo",  0, 0.01m, confirmed: true, anonymitySet: 1),
 			("Jean",   1, 0.02m, confirmed: true, anonymitySet: 1),
@@ -155,7 +160,8 @@ public class TransactionFactoryTests
 	[Fact]
 	public void SelectSameScriptPubKeyCoins()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
 		{
 			("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 10),
 			("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
@@ -277,7 +283,8 @@ public class TransactionFactoryTests
 	[Fact]
 	public void CustomChangeScript()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
 		{
 			("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
 		});
@@ -308,7 +315,8 @@ public class TransactionFactoryTests
 	[Fact]
 	public void SubtractFeeFromSpecificOutput()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
 		{
 			("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
 		});
@@ -343,7 +351,8 @@ public class TransactionFactoryTests
 	[Fact]
 	public void SubtractFeeFromTooSmallOutput()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
 		{
 			("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
 		});
@@ -367,7 +376,8 @@ public class TransactionFactoryTests
 	[Fact]
 	public void MultiplePaymentsToSameAddress()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
 		{
 			("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
 		});
@@ -401,7 +411,8 @@ public class TransactionFactoryTests
 	[Fact]
 	public void SendAbsolutelyAllCoins()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
 		{
 			("Maria",  0, 0.5m, confirmed: false, anonymitySet: 1),
 			("Joseph", 1, 0.4m, confirmed: true, anonymitySet: 10),
@@ -428,7 +439,8 @@ public class TransactionFactoryTests
 	[Fact]
 	public void SpendOnlyAllowedCoins()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
 		{
 			("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 50),
 			("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
@@ -457,7 +469,8 @@ public class TransactionFactoryTests
 	[Fact]
 	public void SpendWholeAllowedCoins()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
 		{
 			("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 50),
 			("Daniel", 1, 0.02m, confirmed: false, anonymitySet: 1),
@@ -494,7 +507,8 @@ public class TransactionFactoryTests
 	[Fact]
 	public void InsufficientAllowedCoins()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
 		{
 			("Pablo", 0, 0.01m, confirmed: true, anonymitySet: 1),
 			("Jean",  1, 0.08m, confirmed: true, anonymitySet: 1)
@@ -519,7 +533,8 @@ public class TransactionFactoryTests
 	[Fact]
 	public void SpendWholeCoinsEvenWhenNotAllowed()
 	{
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
 		{
 			("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 50),
 			("Jack", 1, 0.02m, confirmed: false, anonymitySet: 1),
@@ -766,7 +781,8 @@ public class TransactionFactoryTests
 
 		static BuildTransactionResult ComputeTxResult(FeeRate feeRate)
 		{
-			TransactionFactory transactionFactory = ServiceFactory.CreateTransactionFactory(new[]
+			TransactionFactory transactionFactory = ServiceFactory.CreateTransactionFactory(
+				new[]
 			{
 					(Label: "Pablo", KeyIndex: 0, Amount: 0.00011409m, Confirmed: true, AnonymitySet: 1)
 				});
