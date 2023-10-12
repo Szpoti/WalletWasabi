@@ -9,6 +9,7 @@ using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 
@@ -44,19 +45,28 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 	{
 		base.OnActivated(disposables);
 
-		_wallet.Privacy.Progress
-					   .CombineLatest(_wallet.Privacy.IsWalletPrivate)
-					   .CombineLatest(_wallet.Coins.List.ToCollection())
-					   .Flatten()
-					   .Do(tuple =>
-					   {
-						   var (privacyProgress, isWalletPrivate, coins) = tuple;
-						   Update(privacyProgress, isWalletPrivate, coins);
-					   })
-					   .Subscribe()
-					   .DisposeWith(disposables);
+		var b = BenchmarkLogger.Measure();
+		var coins = _wallet.Coins.List.ToCollection();
+		b.Dispose();
 
+		b = BenchmarkLogger.Measure();
+		var x = _wallet.Privacy.Progress
+			.CombineLatest(_wallet.Privacy.IsWalletPrivate)
+			.CombineLatest(coins)
+			.Flatten();
+		b.Dispose();
+
+		b = BenchmarkLogger.Measure();
+		x.Do(tuple =>
+		{
+			var (privacyProgress, isWalletPrivate, coins) = tuple;
+			Update(privacyProgress, isWalletPrivate, coins);
+		}).Subscribe().DisposeWith(disposables);
+		b.Dispose();
+
+		b = BenchmarkLogger.Measure();
 		PrivacyBar?.Activate(disposables);
+		b.Dispose();
 	}
 
 	private void ShowDetails()

@@ -246,7 +246,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 	{
 		try
 		{
+			var b = BenchmarkLogger.Measure();
 			var orderedRawHistoryList = await Task.Run(() => _walletVm.Wallet.BuildHistorySummary(sortForUI: true));
+			b.Dispose();
 			var newHistoryList = GenerateHistoryList(orderedRawHistoryList).ToArray();
 
 			_transactionSourceList.Edit(x =>

@@ -61,6 +61,7 @@ public class Wallet : BackgroundService, IWallet
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
+
 	public event EventHandler<IEnumerable<FilterModel>>? NewFiltersProcessed;
 
 	public event EventHandler<WalletState>? StateChanged;
@@ -157,37 +158,40 @@ public class Wallet : BackgroundService, IWallet
 	/// <remarks>Transaction amount specifies how it affected your final wallet balance (spend some bitcoin, received some bitcoin, or no change).</remarks>
 	public List<TransactionSummary> BuildHistorySummary(bool sortForUI = false)
 	{
-		Dictionary<uint256, TransactionSummary> mapByTxid = new();
-
-		foreach (SmartCoin coin in GetAllCoins())
+		using (BenchmarkLogger.Measure())
 		{
-			if (mapByTxid.TryGetValue(coin.TransactionId, out TransactionSummary? found)) // If found then update.
-			{
-				found.Amount += coin.Amount;
-			}
-			else
-			{
-				mapByTxid.Add(coin.TransactionId, new TransactionSummary(coin.Transaction, coin.Amount));
-			}
+			Dictionary<uint256, TransactionSummary> mapByTxid = new();
 
-			if (coin.SpenderTransaction is { } spenderTransaction)
+			foreach (SmartCoin coin in GetAllCoins())
 			{
-				var spenderTxId = spenderTransaction.GetHash();
-
-				if (mapByTxid.TryGetValue(spenderTxId, out TransactionSummary? foundSpenderCoin)) // If found then update.
+				if (mapByTxid.TryGetValue(coin.TransactionId, out TransactionSummary? found)) // If found then update.
 				{
-					foundSpenderCoin.Amount -= coin.Amount;
+					found.Amount += coin.Amount;
 				}
 				else
 				{
-					mapByTxid.Add(spenderTxId, new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount));
+					mapByTxid.Add(coin.TransactionId, new TransactionSummary(coin.Transaction, coin.Amount));
+				}
+
+				if (coin.SpenderTransaction is { } spenderTransaction)
+				{
+					var spenderTxId = spenderTransaction.GetHash();
+
+					if (mapByTxid.TryGetValue(spenderTxId, out TransactionSummary? foundSpenderCoin)) // If found then update.
+					{
+						foundSpenderCoin.Amount -= coin.Amount;
+					}
+					else
+					{
+						mapByTxid.Add(spenderTxId, new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount));
+					}
 				}
 			}
-		}
 
-		return sortForUI
-			? mapByTxid.Values.OrderBy(x => x.FirstSeen).ThenBy(x => x.Height).ThenBy(x => x.BlockIndex).ToList()
-			: mapByTxid.Values.OrderByBlockchain().ToList();
+			return sortForUI
+				? mapByTxid.Values.OrderBy(x => x.FirstSeen).ThenBy(x => x.Height).ThenBy(x => x.BlockIndex).ToList()
+				: mapByTxid.Values.OrderByBlockchain().ToList();
+		}
 	}
 
 	/// <summary>
@@ -485,6 +489,7 @@ public class Wallet : BackgroundService, IWallet
 	{
 		await WalletFilterProcessor.ProcessAsync(syncType, cancellationToken).ConfigureAwait(false);
 	}
+
 	private async Task LoadDummyMempoolAsync()
 	{
 		if (BitcoinStore.TransactionStore.MempoolStore.IsEmpty())
