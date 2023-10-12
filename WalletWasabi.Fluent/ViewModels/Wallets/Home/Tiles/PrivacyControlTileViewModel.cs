@@ -49,20 +49,17 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 		var coins = _wallet.Coins.List.ToCollection();
 		b.Dispose();
 
-		b = BenchmarkLogger.Measure();
+		
 		var x = _wallet.Privacy.Progress
 			.CombineLatest(_wallet.Privacy.IsWalletPrivate)
 			.CombineLatest(coins)
-			.Flatten();
-		b.Dispose();
-
-		b = BenchmarkLogger.Measure();
-		x.Do(tuple =>
+			.Flatten()
+			.Do(tuple =>
 		{
 			var (privacyProgress, isWalletPrivate, coins) = tuple;
 			Update(privacyProgress, isWalletPrivate, coins);
 		}).Subscribe().DisposeWith(disposables);
-		b.Dispose();
+		
 
 		b = BenchmarkLogger.Measure();
 		PrivacyBar?.Activate(disposables);
