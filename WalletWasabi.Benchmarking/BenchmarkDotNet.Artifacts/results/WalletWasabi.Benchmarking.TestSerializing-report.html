@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>WalletWasabi.Benchmarking.TestSerializing-20231107-120800</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet v0.13.10, Windows 11 (10.0.22621.2428/22H2/2022Update/SunValley2)
+Intel Core i7-9750H CPU 2.60GHz, 1 CPU, 12 logical and 6 physical cores
+.NET SDK 7.0.401
+  [Host]     : .NET 7.0.11 (7.0.1123.42427), X64 RyuJIT AVX2
+  DefaultJob : .NET 7.0.11 (7.0.1123.42427), X64 RyuJIT AVX2
+</code></pre>
+<pre><code></code></pre>
+
+<table>
+<thead><tr><th>Method                  </th><th>Mean</th><th>Error</th><th>StdDev</th><th>Gen0</th><th>Allocated</th>
+</tr>
+</thead><tbody><tr><td>TestMicrosoftDeserializeBig</td><td>294.76 &mu;s</td><td>5.247 &mu;s</td><td>4.097 &mu;s</td><td>2.4414</td><td>15.83 KB</td>
+</tr><tr><td>TestNewtonsoftDeserializeBig</td><td>286.92 &mu;s</td><td>5.588 &mu;s</td><td>5.227 &mu;s</td><td>2.9297</td><td>18.59 KB</td>
+</tr><tr><td>TestMicrosoftSerializeBig</td><td>195.62 &mu;s</td><td>2.798 &mu;s</td><td>2.618 &mu;s</td><td>2.1973</td><td>14.17 KB</td>
+</tr><tr><td>TestNewtonsoftSerializeBig</td><td>198.27 &mu;s</td><td>2.563 &mu;s</td><td>2.397 &mu;s</td><td>2.9297</td><td>19.38 KB</td>
+</tr><tr><td>TestMicrosoftSerializeSmall</td><td>48.52 &mu;s</td><td>0.449 &mu;s</td><td>0.420 &mu;s</td><td>0.5493</td><td>3.59 KB</td>
+</tr><tr><td>TestNewtonsoftSerializeSmall</td><td>49.14 &mu;s</td><td>0.284 &mu;s</td><td>0.237 &mu;s</td><td>0.9155</td><td>5.66 KB</td>
+</tr><tr><td>TestMicrosoftDeserializeSmall</td><td>70.68 &mu;s</td><td>0.462 &mu;s</td><td>0.386 &mu;s</td><td>0.6104</td><td>3.98 KB</td>
+</tr><tr><td>TestNewtonsoftDeserializeSmall</td><td>71.92 &mu;s</td><td>0.710 &mu;s</td><td>0.629 &mu;s</td><td>1.0986</td><td>6.74 KB</td>
+</tr></tbody></table>
+</body>
+</html>
