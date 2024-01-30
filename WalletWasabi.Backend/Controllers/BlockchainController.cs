@@ -9,12 +9,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Affiliation.Models.CoinJoinNotification;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.Blockchain.Transactions.Summary;
 using WalletWasabi.Cache;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
@@ -451,15 +453,40 @@ public class BlockchainController : ControllerBase
 			HashSet<Transaction> parentTxs = new();
 
 			var currentTx = toFetchFeeList.First();
+
+			// Collect which transactions needs to be fetched and which are already cached.
+			List<TxIn> inputsToFetch = new();
 			foreach (var input in currentTx.Inputs)
 			{
 				if (!transactionsLocalCache.TryGetValue(input.PrevOut.Hash, out var parentTx))
 				{
-					parentTx = await RpcClient.GetRawTransactionAsync(input.PrevOut.Hash, true, cancellationToken);
-					transactionsLocalCache.Add(input.PrevOut.Hash, parentTx);
+					inputsToFetch.Add(input);
 				}
+				else
+				{
+					parentTxs.Add(parentTx);
+					TxOut txOut = parentTx.Outputs[input.PrevOut.N];
+					inputs.Add(new Coin(input.PrevOut, txOut));
+				}
+			}
+
+			IEnumerable<Transaction> rawParentTxs = new List<Transaction>();
+			if (inputsToFetch.Count == 1)
+			{
+				var tx = await RpcClient.GetRawTransactionAsync(inputsToFetch.Single().PrevOut.Hash, true, cancellationToken);
+				rawParentTxs = tx.Singleton();
+			}
+			else
+			{
+				rawParentTxs = await RpcClient.GetRawTransactionsAsync(inputsToFetch.Select(x => x.PrevOut.Hash), cancellationToken);
+			}
+
+			foreach (var parentTx in rawParentTxs)
+			{
+				transactionsLocalCache.Add(parentTx.GetHash(), parentTx);
 
 				parentTxs.Add(parentTx);
+				var input = inputsToFetch.Single(x => x.PrevOut.Hash == parentTx.GetHash());
 				TxOut txOut = parentTx.Outputs[input.PrevOut.N];
 				inputs.Add(new Coin(input.PrevOut, txOut));
 			}
