@@ -122,6 +122,10 @@ public record Chat : IReadOnlyCollection<ChatMessage>
 	{
 		message = message.Replace("||", " ");
 		message = message.Replace('#', '-');
+		if (message.Contains('@'))
+		{
+			message = message.Split('@').Last();
+		}
 		return message;
 	}
 }
