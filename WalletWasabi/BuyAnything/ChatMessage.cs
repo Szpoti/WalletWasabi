@@ -37,7 +37,11 @@ public record ChatMessage
 		IsUnread = isUnread;
 		StepName = stepName;
 		Data = data;
-		CreatedAt = ReadUnixTimestamp();
+		if (ReadUnixTimestamp(out var createdAt))
+		{
+			AddUnixTimestampToText(createdAt);
+		}
+		CreatedAt = createdAt;
 	}
 
 	public bool IsMyMessage => Source == MessageSource.User;
@@ -48,24 +52,27 @@ public record ChatMessage
 	public DataCarrier? Data { get; set; }
 	public DateTimeOffset CreatedAt { get; }
 
-	private DateTimeOffset ReadUnixTimestamp()
+	private bool ReadUnixTimestamp(out DateTimeOffset dateTime)
 	{
+		dateTime = DateTimeOffset.UtcNow;
 		if (Text.StartsWith('@'))
 		{
 			int secondAt = Text.IndexOf('@', 1);
 
 			if (secondAt != -1 && long.TryParse(Text[1..secondAt], out long unixTimestamp))
 			{
-				DateTimeOffset dateTime = DateTimeOffset.FromUnixTimeMilliseconds(unixTimestamp).ToLocalTime();
-				return dateTime;
+				dateTime = DateTimeOffset.FromUnixTimeMilliseconds(unixTimestamp).ToLocalTime();
+				return true;
 			}
 		}
-		var now = DateTimeOffset.UtcNow;
+		return false;
+	}
+
+	private void AddUnixTimestampToText(DateTimeOffset timestamp)
+	{
 		StringBuilder sb = new();
-		sb.Append($"@{now.ToUnixTimeMilliseconds()}@");
+		sb.Append($"@{timestamp.ToUnixTimeMilliseconds()}@");
 		sb.Append(Text);
 		Text = sb.ToString();
-
-		return now;
 	}
 }
