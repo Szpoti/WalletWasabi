@@ -10,7 +10,7 @@ public class TransactionSummary
 	{
 		Transaction = tx;
 		Amount = amount;
-		FeeRate = feeRate;
+		FeeRate = Transaction.TryGetFeeRate(out var realFeeRate) ? realFeeRate : feeRate;
 		EffectiveFeeRate = effectiveFeeRate;
 	}
 
@@ -31,7 +31,7 @@ public class TransactionSummary
 
 	public Money? GetFee() => Transaction.GetFee();
 
-	public FeeRate? GetFeeRate() => Transaction.TryGetFeeRate(out var feeRate) ? feeRate : FeeRate;
+	public FeeRate? GetFeeRate() => FeeRate;
 
 	public FeeRate? GetEffectiveFeeRate() => EffectiveFeeRate;
 
